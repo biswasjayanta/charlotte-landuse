@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Charlotte LULC Change Dashboard</title>
+<link rel="stylesheet" href="clt_base_css.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">🌿</div>
+    <div class="brand-name">CLT <span>LULC</span></div>
+  </div>
+
+  <div class="topbar-controls" style="gap:8px;">
+    <span class="ctrl-label">Choropleth:</span>
+    <select id="attr-select">
+      <option value="imperv">Impervious Surface</option>
+      <option value="forest">Forest Cover</option>
+      <option value="lowveg">Low Vegetation</option>
+      <option value="water">Water</option>
+    </select>
+  </div>
+
+  <div class="topbar-controls" style="gap:6px;">
+    <span class="ctrl-label">Chart view:</span>
+    <div class="mode-chips">
+      <button class="mode-chip active" data-mode="line" onclick="setChartMode('line')">Line</button>
+      <button class="mode-chip" data-mode="area" onclick="setChartMode('area')">Stacked</button>
+      <button class="mode-chip" data-mode="bar" onclick="setChartMode('bar')">Bar</button>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="year-badge" id="year-badge">1985 – 2024 · 40 yrs</div>
+    <button class="fit-btn" id="fit-btn">⊕ Fit Charlotte</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div style="position:relative; flex:1; min-width:0; height:100%;">
+    <div id="map"></div>
+    <div id="map-tooltip">
+      <div class="tt-name" id="tt-name"></div>
+      <div class="tt-row" id="tt-row1"></div>
+      <div class="tt-row" id="tt-row2"></div>
+      <div class="tt-row" id="tt-row3"></div>
+    </div>
+
+    <!-- MAP LEGEND -->
+    <div class="map-legend" id="map-legend">
+      <div class="ml-title" id="ml-title">Impervious %</div>
+      <div id="ml-rows"></div>
+    </div>
+
+    <!-- BASEMAP SWITCHER — always visible, top-left of map -->
+    <div class="basemap-switcher" id="basemap-switcher">
+      <div class="bm-title">Basemap</div>
+      <!-- Buttons injected by JS -->
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-head">
+      <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:4px;">Selected Tract</div>
+      <div id="tract-name" class="tract-name">—</div>
+      <div id="tract-sub" class="tract-sub">Click a census tract to explore</div>
+    </div>
+
+    <!-- LULC PILLS -->
+    <div class="lulc-pills" id="lulc-pills" style="display:none">
+      <div class="pill forest" id="pill-forest" onclick="setActiveLulc('forest')">
+        <div class="pill-val" id="pv-forest">—</div>
+        <div class="pill-lbl">Forest</div>
+      </div>
+      <div class="pill imperv" id="pill-imperv" onclick="setActiveLulc('imperv')">
+        <div class="pill-val" id="pv-imperv">—</div>
+        <div class="pill-lbl">Imperv.</div>
+      </div>
+      <div class="pill lowveg" id="pill-lowveg" onclick="setActiveLulc('lowveg')">
+        <div class="pill-val" id="pv-lowveg">—</div>
+        <div class="pill-lbl">Low Veg.</div>
+      </div>
+      <div class="pill water" id="pill-water" onclick="setActiveLulc('water')">
+        <div class="pill-val" id="pv-water">—</div>
+        <div class="pill-lbl">Water</div>
+      </div>
+    </div>
+
+    <div id="no-sel" class="no-sel-msg">
+      <div class="icon">🗺️</div>
+      <div>Click any census tract on the map to view land use change charts for 1985–2024</div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="chart-section" id="chart-section" style="display:none">
+      <!-- Primary chart -->
+      <div>
+        <div class="chart-header">
+          <span class="chart-title" id="primary-chart-title">LULC Over Time</span>
+          <span class="chart-subtitle">pixel count</span>
+        </div>
+        <div class="chart-wrap" style="margin-top:6px;">
+          <canvas id="primary-chart" height="160"></canvas>
+        </div>
+        <div class="chart-legend" id="primary-legend"></div>
+      </div>
+
+      <!-- Stacked / composition chart -->
+      <div>
+        <div class="chart-header">
+          <span class="chart-title">Land Cover Composition</span>
+          <span class="chart-subtitle">% share</span>
+        </div>
+        <div class="chart-wrap" style="margin-top:6px;">
+          <canvas id="composition-chart" height="140"></canvas>
+        </div>
+      </div>
+      <!-- Change cards -->
+      <div>
+        <div class="chart-title" style="margin-bottom:8px;">Change 1985 → 2024</div>
+        <div class="change-grid" id="change-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="clt_base_js.js"></script>
+</body>
+</html>
